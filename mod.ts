@@ -1,13 +1,16 @@
 const appName = "[Sibyl Monitoring System]";
-const endpointRaw = new URL(import.meta.url).searchParams.get("endpoint");
-const endpoint = endpointRaw ? decodeURIComponent(endpointRaw) : null;
+const searchParams = new URL(import.meta.url).searchParams;
+const endpoint = searchParams.get("endpoint")
+  ? decodeURIComponent(searchParams.get("endpoint"))
+  : null;
 const isBrowser = typeof window !== "undefined";
-const isLocal =
+const isLocal = searchParams.get("env") !== "production" && (
   !isBrowser ||
   ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname) ||
-  location.hostname.includes("192.");
+  location.hostname.includes("192.")
+);
 const isRobot = /bot|googlebot|crawler|spider|robot|crawling/i.test(
-  isBrowser ? navigator.userAgent : ""
+  isBrowser ? navigator.userAgent : "",
 );
 const isFrenchOrNull = (v) => v === "FR" || !v;
 const rawConsole = isBrowser ? { ...globalThis.console } : {};
@@ -74,15 +77,14 @@ const main = () => {
         hostname: window?.location?.hostname,
         ip: trace?.ip,
         country: trace?.loc,
-        data:
-          typeof window?.SIBYL_MONITORING_DATA === "object"
-            ? JSON.stringify(window.SIBYL_MONITORING_DATA)
-            : null,
+        data: typeof window?.SIBYL_MONITORING_DATA === "object"
+          ? JSON.stringify(window.SIBYL_MONITORING_DATA)
+          : null,
         stacktrace,
         ...e,
       };
       isLocal || isRobot || !isFrenchOrNull(payload.country) || !endpoint
-        ? dev.log(payload)
+        ? dev.log(endpoint, payload)
         : request(endpoint, payload);
     });
   };
@@ -110,7 +112,7 @@ const main = () => {
         throw Error(
           args
             .map((d) => (String(d).includes("[object") ? JSON.stringify(d) : d))
-            .join("\n")
+            .join("\n"),
         );
       } catch (err) {
         consoleError(...args);
@@ -136,7 +138,7 @@ const main = () => {
         });
         return false;
       },
-      true
+      true,
     )
   );
 
@@ -152,10 +154,9 @@ const main = () => {
       });
       return false;
     },
-    true
+    true,
   );
   dev.log("Activated");
 };
 
 if (isBrowser) main();
-
