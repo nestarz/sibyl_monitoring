@@ -27,18 +27,9 @@ const postHeaders = {
 };
 
 const request = (e, variables) =>
-  fetch(e, {
-    ...postHeaders,
-    body: JSON.stringify(variables),
-  })
-    .then((res) => res.json())
-    .then((json) =>
-      json?.errors
-        ? json.errors.forEach(({ message }) => dev.error(message))
-        : json?.data
-        ? dev.log("sent", variables)
-        : ""
-    );
+  fetch(e, { ...postHeaders, body: JSON.stringify(variables) })
+    .then((res) => res.text())
+    .catch(console.warn);
 
 const tracePromise = fetch("https://www.cloudflare.com/cdn-cgi/trace")
   .then((r) => r.text())
